@@ -15,6 +15,19 @@ mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('BSIBG Database Connected!'))
 .catch((err) => console.log('DB Connection Error:', err));
 
+app.get('/admin-stats', async (req, res) => {
+    try {
+        const userCount = await User.countDocuments();
+        res.send({
+            totalUsers: userCount,
+            totalMods: 0, 
+            totalSkins: 0
+        });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+});
+
 app.get('/users', async (req, res) => {
     const email = req.query.email;
     try {
