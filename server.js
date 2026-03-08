@@ -13,18 +13,18 @@ app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('BSIBG Database Connected!'))
-.catch((err) => console.log('DB Connection Error:', err));
+    .then(() => console.log('BSIBG Database Connected!'))
+    .catch((err) => console.log('DB Connection Error:', err));
 
 app.get('/admin-stats', async (req, res) => {
     try {
         const userCount = await User.countDocuments();
         const modCount = await Asset.countDocuments({ category: 'mod' });
         const skinCount = await Asset.countDocuments({ category: 'skin' });
-        
+
         res.send({
             totalUsers: userCount,
-            totalMods: modCount, 
+            totalMods: modCount,
             totalSkins: skinCount
         });
     } catch (error) {
@@ -37,10 +37,10 @@ app.post('/upload-mod', async (req, res) => {
     try {
         const newAsset = new Asset(assetData);
         const result = await newAsset.save();
-        res.status(201).send({ 
-            success: true, 
-            message: 'Asset uploaded successfully!', 
-            data: result 
+        res.status(201).send({
+            success: true,
+            message: 'Asset uploaded successfully!',
+            data: result
         });
     } catch (error) {
         res.status(500).send({ message: error.message });
@@ -58,8 +58,28 @@ app.get('/latest-assets', async (req, res) => {
 
 app.get('/all-assets', async (req, res) => {
     try {
-        const assets = await Asset.find().sort({ createdAt: -1 });
-        res.send(assets);
+        const page = parseInt(req.query.page) || 1; 
+        const limit = parseInt(req.query.limit) || 10; 
+        const category = req.query.category || 'all';
+
+        const skip = (page - 1) * limit;
+
+        let query = {};
+        if (category !== 'all') {
+            query.category = category;
+        }
+
+        const assets = await Asset.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Asset.countDocuments(query);
+
+        res.send({
+            assets,
+            hasMore: skip + assets.length < total 
+        });
     } catch (error) {
         res.status(500).send({ message: error.message });
     }
