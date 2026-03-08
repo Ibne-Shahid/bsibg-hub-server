@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const User = require('./models/User');
 const Asset = require('./models/Asset');
+const Subscriber = require('./models/Subscriber');
 
 const app = express();
 
@@ -58,8 +59,8 @@ app.get('/latest-assets', async (req, res) => {
 
 app.get('/all-assets', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1; 
-        const limit = parseInt(req.query.limit) || 10; 
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
         const category = req.query.category || 'all';
 
         const skip = (page - 1) * limit;
@@ -78,7 +79,7 @@ app.get('/all-assets', async (req, res) => {
 
         res.send({
             assets,
-            hasMore: skip + assets.length < total 
+            hasMore: skip + assets.length < total
         });
     } catch (error) {
         res.status(500).send({ message: error.message });
@@ -107,6 +108,37 @@ app.post('/users', async (req, res) => {
         res.status(201).send(result);
     } catch (error) {
         res.status(500).send({ message: error.message });
+    }
+});
+
+app.post('/subscribe', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).send({ message: "Email is required!" });
+        }
+
+        const existingSubscriber = await Subscriber.findOne({ email });
+
+        if (existingSubscriber) {
+            return res.status(200).send({
+                success: true,
+                message: "You are already in the dispatch list!"
+            });
+        }
+
+        const newSubscriber = new Subscriber({ email });
+        await newSubscriber.save();
+
+        res.status(201).send({
+            success: true,
+            message: "Alert initialized! Welcome to the hangar."
+        });
+
+    } catch (error) {
+        console.error("Subscription Error:", error);
+        res.status(500).send({ message: "Internal Server Error" });
     }
 });
 
