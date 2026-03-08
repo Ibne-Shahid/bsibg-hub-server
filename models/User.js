@@ -7,8 +7,8 @@ const userSchema = new mongoose.Schema({
   photoURL: { type: String },
   role: { 
     type: String, 
-    enum: ['gamer', 'moderator', 'admin'], 
-    default: 'gamer' 
+    enum: ['user', 'moderator', 'admin'], 
+    default: 'user' 
   },
   createdAt: { type: Date, default: Date.now }
 });
