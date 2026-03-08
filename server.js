@@ -5,6 +5,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const User = require('./models/User');
+const Asset = require('./models/Asset');
 
 const app = express();
 
@@ -18,11 +19,38 @@ mongoose.connect(process.env.MONGO_URI)
 app.get('/admin-stats', async (req, res) => {
     try {
         const userCount = await User.countDocuments();
+        const modCount = await Asset.countDocuments({ category: 'mod' });
+        const skinCount = await Asset.countDocuments({ category: 'skin' });
+        
         res.send({
             totalUsers: userCount,
-            totalMods: 0, 
-            totalSkins: 0
+            totalMods: modCount, 
+            totalSkins: skinCount
         });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+});
+
+app.post('/upload-mod', async (req, res) => {
+    const assetData = req.body;
+    try {
+        const newAsset = new Asset(assetData);
+        const result = await newAsset.save();
+        res.status(201).send({ 
+            success: true, 
+            message: 'Asset uploaded successfully!', 
+            data: result 
+        });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+});
+
+app.get('/all-assets', async (req, res) => {
+    try {
+        const assets = await Asset.find().sort({ createdAt: -1 });
+        res.send(assets);
     } catch (error) {
         res.status(500).send({ message: error.message });
     }
@@ -32,9 +60,7 @@ app.get('/users', async (req, res) => {
     const email = req.query.email;
     try {
         const user = await User.findOne({ email: email });
-        if (!user) {
-            return res.status(200).send({});
-        }
+        if (!user) return res.status(200).send({});
         res.send(user);
     } catch (error) {
         res.status(500).send({ message: error.message });
@@ -46,11 +72,7 @@ app.post('/users', async (req, res) => {
     try {
         const query = { email: user.email };
         const existingUser = await User.findOne(query);
-
-        if (existingUser) {
-            return res.send({ message: 'User already exists', user: existingUser });
-        }
-
+        if (existingUser) return res.send({ message: 'User already exists', user: existingUser });
         const newUser = new User(user);
         const result = await newUser.save();
         res.status(201).send(result);
