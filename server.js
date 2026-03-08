@@ -47,6 +47,15 @@ app.post('/upload-mod', async (req, res) => {
     }
 });
 
+app.get('/latest-assets', async (req, res) => {
+    try {
+        const latestAssets = await Asset.find().sort({ createdAt: -1 }).limit(3);
+        res.send(latestAssets);
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+});
+
 app.get('/all-assets', async (req, res) => {
     try {
         const assets = await Asset.find().sort({ createdAt: -1 });
