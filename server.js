@@ -48,6 +48,19 @@ app.post('/upload-mod', async (req, res) => {
     }
 });
 
+app.get('/assets/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const asset = await Asset.findById(id);
+        if (!asset) {
+            return res.status(404).send({ message: "Asset not found" });
+        }
+        res.send(asset);
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+});
+
 app.get('/latest-assets', async (req, res) => {
     try {
         const latestAssets = await Asset.find().sort({ createdAt: -1 }).limit(3);
