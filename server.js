@@ -138,7 +138,7 @@ app.get('/top-users', async (req, res) => {
         const topUsers = await User.find({ monthlyPoints: { $gt: 0 } })
             .sort({ monthlyPoints: -1 })
             .limit(3);
-        
+
         res.send(topUsers);
     } catch (error) {
         res.status(500).send({ message: error.message });
@@ -148,12 +148,12 @@ app.get('/top-users', async (req, res) => {
 app.get('/leaderboard-top-ten', async (req, res) => {
     try {
         const topTen = await User.find({ totalPoints: { $gt: 0 } })
-            .sort({ 
+            .sort({
                 totalPoints: -1,
-                updatedAt: 1    
+                updatedAt: 1
             })
             .limit(10);
-        
+
         res.send(topTen);
     } catch (error) {
         res.status(500).send({ message: error.message });
@@ -203,6 +203,31 @@ app.post('/subscribe', async (req, res) => {
     } catch (error) {
         console.error("Subscription Error:", error);
         res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+app.patch('/users/update-profile/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, photoURL } = req.body;
+
+        const result = await User.findByIdAndUpdate(
+            id,
+            { $set: { name, photoURL } },
+            { returnDocument: 'after' }
+        );
+
+        if (result) {
+            res.send({
+                success: true,
+                message: "Profile Synced",
+                user: result
+            });
+        } else {
+            res.status(404).send({ success: false, message: "User not found" });
+        }
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
     }
 });
 
