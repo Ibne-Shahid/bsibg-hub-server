@@ -124,6 +124,30 @@ app.post('/users', async (req, res) => {
     }
 });
 
+app.get('/all-users', async (req, res) => {
+    try {
+        const users = await User.find().sort({ createdAt: -1 });
+        res.send(users);
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+});
+
+app.patch('/users/update-points/:id', async (req, res) => {
+    const id = req.params.id;
+    const { pointsToAdd } = req.body;
+    try {
+        const result = await User.findByIdAndUpdate(
+            id,
+            { $inc: { totalPoints: pointsToAdd, monthlyPoints: pointsToAdd } },
+            { new: true }
+        );
+        res.send({ success: true, data: result });
+    } catch (error) {
+        res.status(500).send({ message: error.message });
+    }
+});
+
 app.post('/subscribe', async (req, res) => {
     try {
         const { email } = req.body;
