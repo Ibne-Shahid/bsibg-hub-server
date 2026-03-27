@@ -136,7 +136,7 @@ app.get('/all-users', async (req, res) => {
 app.get('/top-users', async (req, res) => {
     try {
         const topUsers = await User.find({ monthlyPoints: { $gt: 0 } })
-            .sort({ monthlyPoints: -1 }) // Beshi point age
+            .sort({ monthlyPoints: -1 })
             .limit(3);
         
         res.send(topUsers);
@@ -148,7 +148,10 @@ app.get('/top-users', async (req, res) => {
 app.get('/leaderboard-top-ten', async (req, res) => {
     try {
         const topTen = await User.find({ totalPoints: { $gt: 0 } })
-            .sort({ totalPoints: -1 })
+            .sort({ 
+                totalPoints: -1,
+                updatedAt: 1    
+            })
             .limit(10);
         
         res.send(topTen);
